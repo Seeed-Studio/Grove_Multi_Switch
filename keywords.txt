@@ -1,0 +1,30 @@
+#######################################
+# Syntax Coloring Map For Wire
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+GroveMultiSwitch	KEYWORD1
+ButtonEvent_t		KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+getDevID	KEYWORD2
+getDevVer	KEYWORD2
+setDevAddr	KEYWORD2
+getSwitchCount	KEYWORD2
+setEventMode	KEYWORD2
+getEvent	KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
