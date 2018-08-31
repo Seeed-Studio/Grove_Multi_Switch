@@ -60,10 +60,11 @@ public:
 	 * @param addr - The i2c address of device.
 	 * @return - none
 	 */
-#define _MULTI_SWITCH_DEF_I2C_ADDR		0x03
+#define _MULTI_SWITCH_DEF_I2C_ADDR	0x03	// The device i2c address in default
 	GroveMultiSwitch(uint8_t addr = _MULTI_SWITCH_DEF_I2C_ADDR) {
 		m_devAddr = addr;
 		m_i2c = &Wire;
+		version = 0;
 	}
 
 	/**
@@ -74,6 +75,8 @@ public:
 	bool begin(void) {
 		m_i2c->begin();
 		probeDevID();
+		// versions needed
+		getDevVer();
 		m_btnCnt = getSwitchCount();
 		return (m_btnCnt > 0);
 	}
@@ -105,7 +108,6 @@ public:
 	 * @return - none
 	 */
 	void setDevAddr(uint8_t addr);
-#define _MULTI_SWITCH_DEF_I2C_ADDR	0x03	// The device i2c address in default
 
 	/**
 	 * Get button/Switch count
@@ -149,6 +151,10 @@ private:
 	 *
 	 */
 	uint32_t probeDevID(void);
+
+	#define _MULTI_SWITCH_VERSIONS_SZ			10
+	char versions[_MULTI_SWITCH_VERSIONS_SZ];
+	int version;
 
 	TwoWire *m_i2c;
 	uint8_t m_devAddr;

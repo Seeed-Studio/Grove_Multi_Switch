@@ -93,12 +93,21 @@ void loop()
 {
 	GroveMultiSwitch::ButtonEvent_t* evt;
 
-	delay(1000);
+	delay(1);
 
 	evt = mswitch->getEvent();
 	if (!evt) {
 		// dynamic device probe
 		deviceDetect();
+		delay(1000);
+		return;
+	}
+
+	if (!(evt->event & GroveMultiSwitch::BTN_EV_HAS_EVENT)) {
+		#if 0
+		Serial.print("No event, errno = ");
+		Serial.println(mswitch->errno);
+		#endif
 		return;
 	}
 
@@ -115,14 +124,6 @@ void loop()
 			             "OFF ": "ON ");
 		}
 		Serial.println("");
-	}
-
-	if (!(evt->event & GroveMultiSwitch::BTN_EV_HAS_EVENT)) {
-		#if 0
-		Serial.print("No event, errno = ");
-		Serial.println(mswitch->errno);
-		#endif
-		return;
 	}
 
 	for (int i = 0; i < mswitch->getSwitchCount(); i++) {

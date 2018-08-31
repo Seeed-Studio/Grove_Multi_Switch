@@ -28,6 +28,7 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include "Grove_Multi_Switch.h"
+#include "Arduino.h"
 
 #define I2C_CMD_GET_DEV_ID		0x00	// gets device ID information
 #define I2C_CMD_GET_DEV_EVENT		0x01	// gets device event status
@@ -90,18 +91,32 @@ int GroveMultiSwitch::readReg(uint8_t reg, uint8_t *data, int len) {
 
 uint32_t GroveMultiSwitch::probeDevID(void) {
 	uint32_t id;
+	uint8_t dummy;
+	int tries;
 
-	if ((errno = readReg(I2C_CMD_GET_DEV_ID, (uint8_t*)&id, sizeof id)) <= 0) {
-		id = 0;
+	for (tries = 4; tries > 0; tries--) {
+		if ((errno = readReg(I2C_CMD_GET_DEV_ID, (uint8_t*)&id, sizeof id)) <= 0) {
+			id = 0;
+		}
+
+		if (VID_VAL(id) == VID_MULTI_SWITCH) {
+			return (m_devID = id);
+		}
+
+		// I2C data buffer shift to right align.
+		readDev(&dummy, 1);
 	}
+
+	#if 0
+	// debug only
+	Serial.print("id = ");
+	Serial.println(id);
+	#endif
 	return (m_devID = id);
 }
 
 const char* GroveMultiSwitch::getDevVer(void)
 {
-	#define VERSIONS_SZ			10
-	static char versions[VERSIONS_SZ];
-
 	if (!m_devID) {
 		return NULL;
 	}
@@ -110,6 +125,9 @@ const char* GroveMultiSwitch::getDevVer(void)
 	  sizeof versions)) <= 0) {
 		return NULL;
 	}
+
+	version = ((unsigned)versions[6] - '0') * 10 +
+		  ((unsigned)versions[8] - '0');
 	return versions;
 }
 
@@ -141,7 +159,8 @@ int GroveMultiSwitch::getSwitchCount(void) {
 }
 
 GroveMultiSwitch::ButtonEvent_t* GroveMultiSwitch::getEvent(void) {
-	static ButtonEvent_t event;
+	static ButtonEvent_t event, levent;
+	static int initial = 0;
 	int len = sizeof(uint32_t) + m_btnCnt;
 
 	if (!m_devID) {
@@ -152,6 +171,25 @@ GroveMultiSwitch::ButtonEvent_t* GroveMultiSwitch::getEvent(void) {
 		return NULL;
 	}
 
+	if (version > 1) {	/* Real version 0.1 */
+		return &event;
+	}
+	// Fix: v0.1 will miss event BTN_EV_LEVEL_CHANGED
+	//      if this API called frequently.
+
+	if (!initial) {
+		levent = event;
+		initial = 1;
+	}
+
+	for (int i = 0; i < BUTTON_MAX; i++) {
+		event.button[i] &= ~BTN_EV_LEVEL_CHANGED;
+		if ((event.button[i] ^ levent.button[i]) & BTN_EV_RAW_STATUS) {
+			event.button[i] |= BTN_EV_LEVEL_CHANGED;
+			event.event     |= BTN_EV_HAS_EVENT;
+		}
+	}
+	levent = event;
 	return &event;
 }
 
