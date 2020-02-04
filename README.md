@@ -1,4 +1,4 @@
-# Grove - Multi Switch
+# Grove - Multi Switch  [![Build Status](https://travis-ci.com/Seeed-Studio/Grove_Multi_Switch.svg?branch=master)](https://travis-ci.com/Seeed-Studio/Grove_Multi_Switch)
 
 The Grove - Multi Switch can be used to detect the switch position and event like single click/double click/long press, etc.
 
