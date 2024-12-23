@@ -93,9 +93,9 @@ uint32_t GroveMultiSwitch::probeDevID(void) {
     uint32_t id;
     uint8_t dummy;
     int tries;
-
+    int ret;
     for (tries = 4; tries > 0; tries--) {
-        if ((errno = readReg(I2C_CMD_GET_DEV_ID, (uint8_t*)&id, sizeof id)) <= 0) {
+        if ((ret = readReg(I2C_CMD_GET_DEV_ID, (uint8_t*)&id, sizeof id)) <= 0) {
             id = 0;
         }
 
@@ -119,8 +119,8 @@ const char* GroveMultiSwitch::getDevVer(void) {
     if (!m_devID) {
         return NULL;
     }
-
-    if ((errno = readReg(I2C_CMD_TEST_GET_VER, (uint8_t*)versions,
+    int ret;
+    if ((ret = readReg(I2C_CMD_TEST_GET_VER, (uint8_t*)versions,
                          sizeof versions)) <= 0) {
         return NULL;
     }
@@ -132,7 +132,7 @@ const char* GroveMultiSwitch::getDevVer(void) {
 
 void GroveMultiSwitch::setDevAddr(uint8_t addr) {
     uint8_t data[2] = { 0, };
-
+    int ret;
     if (!m_devID) {
         return;
     }
@@ -140,7 +140,7 @@ void GroveMultiSwitch::setDevAddr(uint8_t addr) {
     data[0] = I2C_CMD_SET_ADDR;
     data[1] = addr;
 
-    errno = writeDev(data, sizeof data);
+    ret = writeDev(data, sizeof data);
     return;
 }
 
@@ -160,12 +160,12 @@ GroveMultiSwitch::ButtonEvent_t* GroveMultiSwitch::getEvent(void) {
     static ButtonEvent_t event, levent;
     static int initial = 0;
     int len = sizeof(uint32_t) + m_btnCnt;
-
+    int ret;
     if (!m_devID) {
         return NULL;
     }
 
-    if ((errno = readReg(I2C_CMD_GET_DEV_EVENT, (uint8_t*)&event, len)) <= 0) {
+    if ((ret = readReg(I2C_CMD_GET_DEV_EVENT, (uint8_t*)&event, len)) <= 0) {
         return NULL;
     }
 
@@ -193,14 +193,14 @@ GroveMultiSwitch::ButtonEvent_t* GroveMultiSwitch::getEvent(void) {
 
 bool GroveMultiSwitch::setEventMode(bool enable) {
     uint8_t data[] = { 0, };
-
+    int ret;
     if (!m_devID) {
         return false;
     }
 
     data[0] = enable ? I2C_CMD_EVENT_DET_MODE : I2C_CMD_BLOCK_DET_MODE;
 
-    if ((errno = writeDev(data, sizeof data)) > 0) {
+    if ((ret = writeDev(data, sizeof data)) > 0) {
         return true;
     }
     return false;
